@@ -2,10 +2,9 @@ import java.net.*;
 import java.io.*;
 
 /**
- *
- * @author axele
+ * Servidor que recibe y envía los archivos solicitados por el cliente
  */
-public class SRecibe {
+public class Servidor {
     public static void main(String[] args){
       try{
           int pto = 8000;
