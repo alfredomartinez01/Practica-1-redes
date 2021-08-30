@@ -25,8 +25,11 @@ public class Cliente {
             
             /**
                 * Argumentos para envío y recepción de datos con el servidor
-                *  0: enviando archivo
-                *  1: enviando directorio
+                *   Primer entero:
+                *       n: número de archivos o directorios a enviar
+                *   Segundo entero:
+                *       0: enviando archivo
+                *       1: enviando directorio
             */
             
             /* En caso de que se vaya enviar */
@@ -36,20 +39,25 @@ public class Cliente {
             System.out.println("Conexión establecida en: " + direccion + ":" + puerto);
             File[] seleccion = getChoice();
             
+            // Creamos el flujo de escritura
+            DataOutputStream dos = new DataOutputStream(skt_cliente.getOutputStream());
+            dos.write(seleccion.length); // Enviamos el número de elementos
+            
             for(File arch : seleccion){
                 if(arch.isDirectory()){
-                    sendDirectory(arch, skt_cliente);
+                    dos.write(1); // Indicamos el envío de un directorio
+                    sendDirectory(arch, dos);
                 } else{
-                    sendFile(arch, skt_cliente, null, null);
+                    dos.write(0); // Indicamos el envío de un archivo
+                    sendFile(arch, dos);
                 }
             }
+            dos.close();
             skt_cliente.close();
-            
-            
-            
+           
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("Conexión faliida en: " + direccion + ":" + puerto);
+            e.printStackTrace();
         }
         
     }
@@ -76,21 +84,16 @@ public class Cliente {
     }
     
     // Enviamos un archivo
-    public static void sendFile(File arch, Socket skt_cliente, DataOutputStream out, DataInputStream in){
+    public static void sendFile(File arch, DataOutputStream dos){
         String nombre = arch.getName();
         long tam = arch.length();
         String ruta = arch.getAbsolutePath();
         
         try {  
-            // Creamos los flujos
-            DataOutputStream dos;
-            DataInputStream dis;
-            // Checamos si tenemos flujos previos o creamos uno nuevo para el envío del archivo
-            dos = (out != null) ?  out : new DataOutputStream(skt_cliente.getOutputStream());
-            dis = (in != null) ? in : new DataInputStream(new FileInputStream(ruta));
+            // Creamos el flujo de escritura
+            DataInputStream dis = new DataInputStream(new FileInputStream(ruta));
             
             // Enviando metadatos del archivo
-            dos.write(0); // Indicamos el envío de un archivo
             dos.writeUTF(nombre); // Indicamos el nombre
             dos.writeLong(tam); // Indicando el tamaño en bytes
             dos.flush();
@@ -104,17 +107,12 @@ public class Cliente {
                 dos.write(b, 0, leidos); // Leemos desde el byte 0 hasta el número de leídos del archivo
                 dos.flush();
                 enviados += leidos;
+                System.out.println("Enviados: " + enviados + " tam " + tam);
             }
-            System.out.println("Archivo: " + ruta + " enviado correctamente.");
             
-            if(out == null){
-                dos.close();
-            }
-            if(in == null){
-                dis.close();
-            }        
+            System.out.println("Archivo: " + ruta + " enviado correctamente.");              
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("No se pudo enviar el archivo: " + ruta);
             e.printStackTrace();
         }
@@ -122,29 +120,26 @@ public class Cliente {
     }
     
     // Enviamos un directorio
-    public static void sendDirectory(File direct, Socket skt_cliente){
+    public static void sendDirectory(File direct, DataOutputStream dos){
         String nombre = direct.getName();
         String ruta = direct.getAbsolutePath();
+        int n_archs = direct.listFiles().length;
         
         try {
-            // Creamos los flujos
-            DataOutputStream dos = new DataOutputStream(skt_cliente.getOutputStream());
-            
             // Enviando metadatos de la carpeta
-            dos.write(1);
             dos.writeUTF(nombre);
+            dos.write(n_archs);
             
             // Enviando cada uno de los archivos del directorio
             for(File arch : new File(ruta).listFiles()){
-                sendFile(arch, skt_cliente, dos, null);
+                sendFile(arch, dos);
             }
             
-            System.out.println("Directorio: " + ruta + "\\ enviada correctamente.");            
-            dos.close();
+            System.out.println("Directorio: " + ruta + "\\ enviada correctamente.");  
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("No se pudo enviar el directorio: " + ruta + "\\");
             e.printStackTrace();
-        }        
-    }
+        }         
+   }
 }
