@@ -16,7 +16,7 @@ import java.util.zip.ZipInputStream;
 public class PruebaS {
     
     static int puerto = 8000;
-    static String direccion = "192.168.1.86";
+    static String direccion = "192.168.0.109";
     
     public static void main(String[] args){
       try{
@@ -37,7 +37,10 @@ public class PruebaS {
                 DataInputStream dis = new DataInputStream(skt_cliente.getInputStream());
                 File comprimido = reciveFile(dis, ruta);
                 descomprimir(comprimido);
-                           
+                
+                System.out.println("Borrando archivo...");
+                comprimido.delete();           
+                
                 dis.close();
                 skt_cliente.close();  
             }  
@@ -86,7 +89,8 @@ public class PruebaS {
                         
                     fos.close();
                 } 
-                zis.closeEntry();     
+                zis.closeEntry(); 
+                                
             }
             return true;
             
@@ -118,7 +122,7 @@ public class PruebaS {
                 escritos += recibidos;
                 System.out.println("Recibidos: " + escritos + " tam " + tam);
             }            
-            System.out.println("Archivo: " + ruta + nombre + " recibido correctamente.");
+            System.out.println("Archivo: " + ruta + "\\" + nombre + " recibido correctamente.");
             
             return arch;
             
