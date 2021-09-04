@@ -37,12 +37,12 @@ public class PruebaS {
                 DataInputStream dis = new DataInputStream(skt_cliente.getInputStream());
                 File comprimido = reciveFile(dis, ruta);
                 descomprimir(comprimido);
+                                      
+                dis.close();
+                skt_cliente.close();
                 
                 System.out.println("Borrando archivo...");
-                comprimido.delete();           
-                
-                dis.close();
-                skt_cliente.close();  
+                comprimido.delete();     
             }  
       }catch(Exception e){
           e.printStackTrace();

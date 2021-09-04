@@ -31,11 +31,11 @@ public class PruebasC {
             DataOutputStream dos = new DataOutputStream(skt_cliente.getOutputStream());
             sendFile(comprimido, dos);
             
-            System.out.println("Borrando archivo...");  
-            new File("./ArchivoComprimido.zip").delete();
-            
             dos.close();
             skt_cliente.close();
+            
+            System.out.println("Borrando archivo...");  
+            comprimido.delete();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,6 +85,7 @@ public class PruebasC {
             
             zous.closeEntry();
             zous.close();
+            
             return new File(ruta + "\\" + "ArchivoComprimido.zip");
 
         } catch (Exception e) {
