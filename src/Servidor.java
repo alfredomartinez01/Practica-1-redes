@@ -39,11 +39,12 @@ public class Servidor {
                 System.out.println("Cliente conectado desde " + skt_cliente.getInetAddress() + ":" + skt_cliente.getPort());
                 
                 DataInputStream dis = new DataInputStream(skt_cliente.getInputStream());
-                int n_elementos = dis.read(); // Leemos el número de elementos enviados por cliente
+                //int n_elementos = dis.read(); // Leemos el número de elementos enviados por cliente
+                int n_elementos = 3;
                 
                 for(int e_recibidos = 0; e_recibidos < n_elementos; e_recibidos++){
-                    int comando = dis.read(); // Leemos el comando envíado por el cliente
-                    
+                    //int comando = dis.read(); // Leemos el comando envíado por el cliente
+                    int comando = 0;
                     switch(comando){
                         // Recepción de archivo
                         case 0:
@@ -56,8 +57,8 @@ public class Servidor {
                             break;
                     }
                 }             
-                dis.close();
-                skt_cliente.close();
+                // dis.close();
+                // skt_cliente.close();
             }
             
             
@@ -89,7 +90,7 @@ public class Servidor {
                 byte[] b = new byte[1500]; // Recibimos un paquete de 1500 bytes
                 recibidos = dis.read(b);
                 
-                dos.write(b, 0, recibidos); // Leemos desde el byte 0 hasta el número de leídos del socket
+                dos.write(b, (int)escritos, (int)(recibidos+escritos)); // Leemos desde el byte 0 hasta el número de leídos del socket
                 dos.flush();
                 escritos += recibidos;
                 System.out.println("Recibidos: " + escritos + " tam " + tam);
