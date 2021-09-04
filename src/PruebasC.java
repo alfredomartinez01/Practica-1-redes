@@ -78,12 +78,8 @@ public class PruebasC {
             // Recorrer todos los archivos y carptetas seleccionadas
             for (int i = 0; i < archs.length; i++) {                
                 compresor(zous, archs[i], archs[i].getName()); // Comprimimos cada elemento, el tercer argumento representa la carpeta donde están los seleccionados
-                // -> Nuevo/
-                    // hola.txt
-                // nuevo.txt -listo
             }
             
-            zous.closeEntry();
             zous.close();
             
             return new File(ruta + "\\" + "ArchivoComprimido.zip");
@@ -131,7 +127,7 @@ public class PruebasC {
             
             fis.close();
         }
-        
+        zous.closeEntry();
     }
 
     // Enviamos un archivo
@@ -160,7 +156,8 @@ public class PruebasC {
                 enviados += leidos;
                 System.out.println("Enviados: " + enviados + " tam " + tam);
             }
-
+            
+            dis.close();
             System.out.println("Archivo: " + ruta + " enviado correctamente.");
                         
 

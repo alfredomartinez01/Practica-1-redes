@@ -31,7 +31,8 @@ public class PruebaS {
             // Comenzamos la escucha permanente de clientes
             while(true){
                 System.out.println("---------------------------------------------------------------------------------");
-                Socket skt_cliente = skt_server.accept();
+                Socket skt_cliente = skt_server.accept();                 
+                
                 System.out.println("Cliente conectado desde " + skt_cliente.getInetAddress() + ":" + skt_cliente.getPort());
                 
                 DataInputStream dis = new DataInputStream(skt_cliente.getInputStream());
@@ -39,10 +40,11 @@ public class PruebaS {
                 descomprimir(comprimido);
                                       
                 dis.close();
+                
                 skt_cliente.close();
                 
                 System.out.println("Borrando archivo...");
-                comprimido.delete();     
+                comprimido.delete();
             }  
       }catch(Exception e){
           e.printStackTrace();
@@ -89,9 +91,10 @@ public class PruebaS {
                         
                     fos.close();
                 } 
-                zis.closeEntry(); 
+                zis.closeEntry();
                                 
             }
+            zis.close();
             return true;
             
         } catch (Exception e) {
@@ -124,6 +127,7 @@ public class PruebaS {
             }            
             System.out.println("Archivo: " + ruta + "\\" + nombre + " recibido correctamente.");
             
+            dos.close();
             return arch;
             
         } catch (Exception e) {
