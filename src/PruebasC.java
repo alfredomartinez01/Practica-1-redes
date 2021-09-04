@@ -24,7 +24,7 @@ public class PruebasC {
             
             // Creamos el flujo de escritura
             DataOutputStream dos = new DataOutputStream(skt_cliente.getOutputStream());
-            sendFile(comprimido, dos);
+            sendFile(seleccion[0], dos);
             
             dos.close();
             skt_cliente.close();
@@ -44,7 +44,7 @@ public class PruebasC {
     // Obtenemos lo que seleccionó para subir
     public static File[] getChoice(){
         // Lanzamos el file chooser para elegir carpetas o directorios
-        JFileChooser f_chooser = new JFileChooser();
+        JFileChooser f_chooser = new JFileChooser(new File("").getAbsolutePath());
         f_chooser.setMultiSelectionEnabled(true);
         f_chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         int seleccion = f_chooser.showOpenDialog(null);

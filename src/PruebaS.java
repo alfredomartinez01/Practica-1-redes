@@ -2,10 +2,16 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class PruebaS {
     
@@ -47,8 +53,47 @@ public class PruebaS {
     
     // Descomprimimos el archivo
     public static boolean descomprimir(File arch){
-        
-        return false;
+        try {
+            // Creamos los flujos para trabajar el zip
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(arch.getName()));
+            ZipEntry salida;
+            
+            // Recorremos cada archivo
+            while (null != (salida = zis.getNextEntry())) {
+                
+                System.out.println("Nombre del Archivo: "+salida.getName());	
+
+                // Creamos flujo de escritura del archivo
+                File arch_temp;
+                
+                if(salida.isDirectory()){
+                    
+                    arch_temp = new File(arch.getParent() + "\\" + salida.getName()); // Abrimos el directorio
+                    if(!arch_temp.isDirectory()) arch_temp.mkdir(); // Creamos el directorio si no está creado
+                    
+                    
+                } else {
+                    // Creamos el flujo del archivo
+                    arch_temp = new File(arch.getParent() + "\\" + salida.getName());                    
+                    FileOutputStream fos = new FileOutputStream(arch_temp.getAbsolutePath());
+                    
+                    int leer;
+                    byte[] buffer = new byte[1024];
+
+                    while (0 < (leer = zis.read(buffer))) {
+                            fos.write(buffer, 0, leer);
+                    }
+                        
+                    fos.close();
+                } 
+                zis.closeEntry();     
+            }
+            return true;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
     
     // Recibimos cada archivo enviado por el cliente
