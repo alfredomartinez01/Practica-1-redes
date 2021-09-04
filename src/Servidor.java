@@ -1,5 +1,4 @@
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -32,15 +31,20 @@ public class Servidor {
             // Comenzamos la escucha permanente de clientes
             while(true){
                 System.out.println("---------------------------------------------------------------------------------");
-                Socket skt_cliente = skt_server.accept();
+                Socket skt_cliente = skt_server.accept();                 
+                
                 System.out.println("Cliente conectado desde " + skt_cliente.getInetAddress() + ":" + skt_cliente.getPort());
                 
                 DataInputStream dis = new DataInputStream(skt_cliente.getInputStream());
-                reciveFile(dis, ruta);
-                //descomprimir(comprimido);
-                           
+                File comprimido = reciveFile(dis, ruta);
+                descomprimir(comprimido);
+                                      
                 dis.close();
-                skt_cliente.close();  
+                
+                skt_cliente.close();
+                
+                System.out.println("Borrando archivo...");
+                comprimido.delete();
             }  
       }catch(Exception e){
           e.printStackTrace();
@@ -53,11 +57,10 @@ public class Servidor {
     }
     
     // Descomprimimos el archivo
-    public static boolean descomprimir(File arch, byte[] datos){
+    public static boolean descomprimir(File arch){
         try {
             // Creamos los flujos para trabajar el zip
-            ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(datos));
-            
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(arch.getName()));
             ZipEntry salida;
             
             // Recorremos cada archivo
@@ -70,13 +73,13 @@ public class Servidor {
                 
                 if(salida.isDirectory()){
                     
-                    arch_temp = new File(arch.getName() + "\\" + salida.getName()); // Abrimos el directorio
+                    arch_temp = new File(arch.getParent() + "\\" + salida.getName()); // Abrimos el directorio
                     if(!arch_temp.isDirectory()) arch_temp.mkdir(); // Creamos el directorio si no está creado
                     
                     
                 } else {
                     // Creamos el flujo del archivo
-                    arch_temp = new File(arch.getName() + "\\" + salida.getName());                    
+                    arch_temp = new File(arch.getParent() + "\\" + salida.getName());                    
                     FileOutputStream fos = new FileOutputStream(arch_temp.getAbsolutePath());
                     
                     int leer;
@@ -88,8 +91,10 @@ public class Servidor {
                         
                     fos.close();
                 } 
-                zis.closeEntry();     
+                zis.closeEntry();
+                                
             }
+            zis.close();
             return true;
             
         } catch (Exception e) {
@@ -99,7 +104,7 @@ public class Servidor {
     }
     
     // Recibimos cada archivo enviado por el cliente
-    public static void reciveFile(DataInputStream dis, String ruta){
+    public static File reciveFile(DataInputStream dis, String ruta){
         try {
             // Leemos metadatos del archivo
             String nombre = dis.readUTF();
@@ -115,15 +120,20 @@ public class Servidor {
                 byte[] b = new byte[1500]; // Recibimos un paquete de 1500 bytes
                 recibidos = dis.read(b);
                 
+                dos.write(b, 0, recibidos); // Leemos desde el byte 0 hasta el número de leídos del socket
+                dos.flush();
                 escritos += recibidos;
                 System.out.println("Recibidos: " + escritos + " tam " + tam);
             }            
-            System.out.println("Archivo: " + ruta + nombre + " recibido correctamente.");
+            System.out.println("Archivo: " + ruta + "\\" + nombre + " recibido correctamente.");
             
+            dos.close();
+            return arch;
             
         } catch (Exception e) {
             System.out.println("No se pudo recibir el archivo del cliente.");
             e.printStackTrace();
+            return null;
         }
     }
 }   
