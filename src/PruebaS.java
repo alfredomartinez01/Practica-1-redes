@@ -16,7 +16,7 @@ import java.util.zip.ZipInputStream;
 public class PruebaS {
     
     static int puerto = 8000;
-    static String direccion = "192.168.0.109";
+    static String direccion = "192.168.1.86";
     
     public static void main(String[] args){
       try{
