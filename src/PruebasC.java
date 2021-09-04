@@ -2,17 +2,20 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipEntry;
 
 public class PruebasC {
     public static void main(String[] args){
         
         int puerto = 8000;
-        String direccion = "192.168.0.109"; // Dirección IP 
+        String direccion = "192.168.1.86"; // Dirección IP 
         
         try {
             Socket skt_cliente = conectar(puerto, direccion); // La direccion dependerá del la IP del servidor
@@ -59,6 +62,33 @@ public class PruebasC {
     
     // Comprimir archivos
     public static File comprimir(File archs[]){
+        String ruta = archs[0].getParentFile().getAbsolutePath();
+        System.out.println(ruta);
+        try{
+            ZipOutputStream zous = new ZipOutputStream(new FileOutputStream(ruta + "\\" + "ArchivoComprimido"));
+            
+            for(int i=0; i<archs.length; i++){
+                ZipEntry entrada = new ZipEntry(archs[i].getName());
+                zous.putNextEntry(entrada);
+                
+                System.out.println("Comprimiendo...");
+                
+                FileInputStream fis = new FileInputStream(ruta+"\\"+entrada.getName());
+                int leer;
+                byte[] b = new byte[1500];
+                while(0 < (leer = fis.read(b))){
+                    zous.write(b, 0, leer);
+                }
+                fis.close();
+            }
+            
+            zous.closeEntry();
+            zous.close();
+            
+        } catch (Exception e){
+            System.out.println("Error al comprimir");
+             e.printStackTrace();
+        }
         
         return null;
     }
