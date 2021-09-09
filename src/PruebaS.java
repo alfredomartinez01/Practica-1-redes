@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class PruebaS {
+public class PruebaS{
     
     static int puerto = 8000;
     static String direccion = "192.168.0.109";
@@ -31,7 +31,7 @@ public class PruebaS {
             // Comenzamos la escucha permanente de clientes
             while(true){
                 System.out.println("---------------------------------------------------------------------------------");
-                Socket skt_cliente = skt_server.accept();                 
+                Socket skt_cliente = skt_server.accept(); 
                 
                 System.out.println("Cliente conectado desde " + skt_cliente.getInetAddress() + ":" + skt_cliente.getPort());
                 
