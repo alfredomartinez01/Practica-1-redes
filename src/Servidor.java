@@ -63,8 +63,10 @@ public class Servidor {
                                     enviarListaArchs();
                                     break;
                                 case 1: // En caso de que el cliente envíe un archivo
-                                    recibirArchivo();
+                                    recibirArchivos();
                                     break;
+                                case 2:
+                                    enviarArchivos();
                                 default:
                                     break;
                             }
@@ -95,6 +97,7 @@ public class Servidor {
         // Buscamos la carpeta dentro del directorio del proyecto
         File f = new File("");
         dir_absoluta = f.getAbsolutePath() + "\\archivos\\";
+        dir_relativa = dir_absoluta;
     }
 
     // Creamos la conexión del servidor por el puerto
@@ -127,12 +130,11 @@ public class Servidor {
     public static void enviarListaArchs() {
         try {
             // Recibimos el resto de la petición
-            dir_relativa = dis_socket.readUTF(); // Leemos la ruta relativa que solicita el cliente
+            String ruta = dis_socket.readUTF(); // Leemos la ruta relativa que solicita el cliente
 
             // Ubicamos la carpeta
-            dir_absoluta  = dir_absoluta + "\\" + dir_relativa; 
-            String ruta = dir_absoluta;
-            File carpeta = new File(ruta);
+            dir_relativa  = dir_relativa + "\\" + ruta; 
+            File carpeta = new File(dir_relativa);
 
             // Leemos la cantidad de archivos que tiene
             int n_archs = carpeta.list().length;
@@ -155,7 +157,7 @@ public class Servidor {
     }
         
     // Recibimos cada archivo enviado por el cliente
-    public static void recibirArchivo(){
+    public static void recibirArchivos(){
         try {
             // Leemos metadatos del archivo
             String nombre = dis_socket.readUTF();
@@ -202,7 +204,47 @@ public class Servidor {
             System.out.println("No se pudo finalizar la sesión correctamente");
         }
     }       
+    
+    // Enviamos un archivo comprimido con los archivos al servidor
+    public static void enviarArchivos() throws Exception {
+        // Recibimos el resto de la petición
+        int n_archs = dis_socket.read(); // Leemos el número de archivos
+        File files[] = new File[n_archs];
+                
+        for(int i = 0; i < n_archs; i++){
+            String nombre = dis_socket.readUTF();
+            files[i] = new File(dir_relativa + "\\" + nombre); // Obtenemos el archivo con cada nombre recibido
+    
+        }
+        
+        // Comprimimos los archivos/carpetas en uno
+        File arch = Archivo.comprimir(files);
+        
 
+        // Obteniendo datos del archivo
+        long tam = arch.length();
+        String ruta = arch.getAbsolutePath();
+
+        // Creamos el flujo de escritura
+        DataInputStream dis = new DataInputStream(new FileInputStream(ruta));
+
+        // Enviando metadatos del archivo
+        dos_socket.writeLong(tam); // Indicando el tamaño en bytes
+        dos_socket.flush();
+
+        // Enviando archivo
+        int leidos;
+        for (long enviados = 0; enviados < tam;) {
+            byte[] b = new byte[1500]; // Enviamos en paquete de 1500 bytes
+            leidos = dis.read(b);
+
+            dos_socket.write(b, 0, leidos); // Leemos desde el byte 0 hasta el número de leídos del archivo
+            dos_socket.flush();
+            enviados += leidos;
+        }
+        dis.close();
+        arch.delete();
+    }
     
     
     // Función que obtene la última modificación de un archivo

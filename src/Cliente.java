@@ -3,6 +3,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -23,22 +24,28 @@ public class Cliente {
     // Lista de archivos 
     static String dir_relativa = ""; // Ruta relativa sobre la carpeta de arhivos del servidor en el que se encuentra el cliente
     static ArrayList<Archivo> archs_relativos = new ArrayList<Archivo>(); // Lista de archivos dentro de la dirección relativa 
-
+    
+    // Dirección a la capeta de archivos
+    static String dir_absoluta; // Apunta a la carpeta donde se encuentra el sistema de cliente
+    
     /*
     DECRIPCIÓN DEL PROTOCOLO
     Datos:
         0 -> Hacer petición de lista de archivos
         1 -> Envío de archivo
+        2 -> Solicitud de un archivo
     
         255 -> Cerrar sesión
     
      */
     public static void main(String[] args) {
+        establecerCarpeta();
         // Simulando la apertura de la aplicación
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
         try {
             conectar(); // Creamos la conexión al socket
             System.out.println("Conexión establecida en: " + direccion + ":" + puerto);
-
+            
             flujoSalidaSkt(); // Creamos el flujo de escritura del socket
             flujoEntradaSkt(); // Creamos el flujo de lectura del socket
             System.out.println("Flujos sobre el socket creados correctamente.");
@@ -48,6 +55,7 @@ public class Cliente {
         }
 
         // Simulando la solicitud de la lista de archivos
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
         try {
             solicitarLista();
             System.out.println("Solicitud de lista correcta");
@@ -60,6 +68,7 @@ public class Cliente {
         }
 
         // Simulando el envío de un archivo
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
         try {
             File[] seleccion = getChoice();
 
@@ -76,6 +85,7 @@ public class Cliente {
         }
         
         // Simulando la solicitud de la lista de archivos
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
         try{
             dir_relativa = "src\\";
             solicitarLista();
@@ -88,26 +98,31 @@ public class Cliente {
             System.out.println("Hubo error al solicitar los archivos del servidor");
         }
         
-        // Simulando el envío de un archivo
-        try {
-            File[] seleccion = getChoice();
-
-            // Compresión de archivos
-            File comprimido = Archivo.comprimir(seleccion);
-            enviarArchivo(comprimido); // Enviamos el archivo comprimido por el socket
-            comprimido.delete(); // Eliminamos el archivo comprimido
+        // Simulando la solicitud de un archivo
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try{
+            String nombres[] = {"Archivo.java", "Cliente.java"};
+            recibirArchivo(nombres);
+            System.out.println("Solicitud de archivo correcto");
             
-            System.out.println(seleccion.length +" archivos/carpetas han sido enviados correctamente.");
-
-        } catch (Exception e) {
+        } catch(Exception e){
             e.printStackTrace();
-            System.out.println("Hubo error al enviar el archivo");
+            System.out.println("Hubo un error en la petición del archivo");
         }
+        
+        
+        
         
         // Simulando la finalización del sistema
         cerrarConexion();
     }
-
+    // Establece la dirección de la carpeta donde se encuentran los archivos
+    public static void establecerCarpeta() {
+        // Buscamos la carpeta dentro del directorio del proyecto
+        File f = new File("");
+        dir_absoluta = f.getAbsolutePath() + "\\archivosC\\";
+    }
+    
     // Conectamos al servidor
     public static void conectar() throws Exception {
         skt_cliente = new Socket(direccion, puerto);
@@ -177,6 +192,51 @@ public class Cliente {
         dis.close();
     }
 
+    // Recibimos cada archivo enviado por el servidor
+    public static void recibirArchivo(String nombres[]) throws IOException{
+        // Enviamos la petición al servidor
+        dos_socket.write(2); // Enviamos el comando indicando que solicitamos un archivo sobre la carpeta
+        dos_socket.write(nombres.length); // Enviamos el nombre del tamaños de archivos
+        
+        for(int i = 0; i < nombres.length; i++){
+            dos_socket.writeUTF(nombres[i]); // Enviamos el nombre de cada uno de los archivos
+        }
+        
+        
+        
+        try {
+            // Leemos metadatos del archivo
+            String nombre = "ArchivoComprimido.zip";
+            long tam = dis_socket.readLong();
+            File arch = new File(dir_absoluta + "\\" + nombre);
+            System.out.println(arch.getAbsolutePath());
+            // Creamos el flujo de salida al archivo
+            DataOutputStream dos = new DataOutputStream(new FileOutputStream(arch.getAbsolutePath()));
+            
+            // Recibiendo archivo
+            int recibidos;
+            for(long escritos = 0; escritos < tam; ){
+                byte[] b = new byte[1500]; // Recibimos un paquete de 1500 bytes
+                recibidos = dis_socket.read(b);
+                
+                dos.write(b, 0, recibidos); // Leemos desde el byte 0 hasta el número de leídos del socket
+                dos.flush();
+                escritos += recibidos;
+            }            
+            System.out.println("Archivo: " + dir_absoluta + "\\" + nombre + " recibido correctamente.");
+            dos.close();
+            
+            // Descomprimimos el archivo en su carpeta         
+            Archivo.descomprimir(arch);
+            arch.delete();
+
+            
+        } catch (Exception e) {
+            System.out.println("No se pudo recibir el archivo del cliente.");
+            e.printStackTrace();
+        }
+    }
+    
     // Enviamos el comando de finalización al servidor
     public static void cerrarConexion() {
         try {
@@ -195,7 +255,7 @@ public class Cliente {
     // Obtenemos lo que seleccionó para subir
     public static File[] getChoice() {
         // Lanzamos el file chooser para elegir carpetas o directorios
-        JFileChooser f_chooser = new JFileChooser(new File("").getAbsolutePath());
+        JFileChooser f_chooser = new JFileChooser(new File(dir_absoluta));
         f_chooser.setMultiSelectionEnabled(true);
         f_chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         int seleccion = f_chooser.showOpenDialog(null);
