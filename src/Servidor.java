@@ -53,11 +53,14 @@ public class Servidor {
                     System.out.println("Flujos sobre el socket creados correctamente.");
                    
                     // Recibimos el comando del cliente
-                    try {
+                    try {                        
                         int comando = recibirComando(); // El primer comando siempre será de solicitud de lista
 
                         // Escuchamos comandos mientras el cliente no cierre conexión
-                        do{                            
+                        do{      
+                            System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");                            
+                            System.out.println(comando);
+                            
                             switch (comando) {
                                 case 0: // En caso de que sea una solicitud de lista de archivos
                                     enviarListaArchs();
@@ -67,11 +70,14 @@ public class Servidor {
                                     break;
                                 case 2:
                                     enviarArchivos();
+                                    break;
+                                case 3:
+                                    eliminarArchivo();
+                                    break;
                                 default:
                                     break;
                             }
                             comando = recibirComando();
-                            System.out.println(comando);
                             
                         } while (comando != 255);
                         cerrarConexion();
@@ -191,20 +197,6 @@ public class Servidor {
         }
     }
     
-    // Finalizamos la sesión con el cliente
-    public static void cerrarConexion(){
-        try {
-            dos_socket.close();
-            dis_socket.close();
-            
-            skt_cliente.close();
-            System.out.println("Sesión finalizada");
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            System.out.println("No se pudo finalizar la sesión correctamente");
-        }
-    }       
-    
     // Enviamos un archivo comprimido con los archivos al servidor
     public static void enviarArchivos() throws Exception {
         // Recibimos el resto de la petición
@@ -246,6 +238,36 @@ public class Servidor {
         arch.delete();
     }
     
+    // Eliminamos un archivo dependiendo de la petición
+    public static void eliminarArchivo() throws Exception {
+        // Recibimos el resto de la petición
+        int n_archs = dis_socket.read(); // Leemos el número de archivos
+        System.out.println(n_archs);
+        
+        // Obteniendo y eliminando archivos
+        for(int i = 0; i < n_archs; i++){
+            String nombre = dis_socket.readUTF();
+            System.out.println(nombre);
+            File arch = new File(dir_relativa + "\\" + nombre); // Obtenemos el archivo con cada nombre recibido
+            System.out.println(arch.getAbsolutePath());
+            arch.delete();
+        }
+        
+    }
+    
+    // Finalizamos la sesión con el cliente
+    public static void cerrarConexion(){
+        try {
+            dos_socket.close();
+            dis_socket.close();
+            
+            skt_cliente.close();
+            System.out.println("Sesión finalizada");
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            System.out.println("No se pudo finalizar la sesión correctamente");
+        }
+    }   
     
     // Función que obtene la última modificación de un archivo
     public static String obtenerUltimaMod(File arch) {
