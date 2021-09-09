@@ -88,6 +88,22 @@ public class Cliente {
             System.out.println("Hubo error al solicitar los archivos del servidor");
         }
         
+        // Simulando el envío de un archivo
+        try {
+            File[] seleccion = getChoice();
+
+            // Compresión de archivos
+            File comprimido = Archivo.comprimir(seleccion);
+            enviarArchivo(comprimido); // Enviamos el archivo comprimido por el socket
+            comprimido.delete(); // Eliminamos el archivo comprimido
+            
+            System.out.println(seleccion.length +" archivos/carpetas han sido enviados correctamente.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al enviar el archivo");
+        }
+        
         // Simulando la finalización del sistema
         cerrarConexion();
     }

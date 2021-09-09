@@ -130,7 +130,8 @@ public class Servidor {
             dir_relativa = dis_socket.readUTF(); // Leemos la ruta relativa que solicita el cliente
 
             // Ubicamos la carpeta
-            String ruta = dir_absoluta + "\\" + dir_relativa;
+            dir_absoluta  = dir_absoluta + "\\" + dir_relativa; 
+            String ruta = dir_absoluta;
             File carpeta = new File(ruta);
 
             // Leemos la cantidad de archivos que tiene
