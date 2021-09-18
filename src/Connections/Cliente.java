@@ -1,3 +1,5 @@
+package Connections;
+
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,7 +16,7 @@ import javax.swing.JFileChooser;
 public class Cliente {
 
     static int puerto = 8000; // Puerto de conexión
-    static String direccion = "192.168.0.109"; // Dirección IP 
+    static String direccion = "192.168.0.104"; // Dirección IP 
     static Socket skt_cliente; // Socket del cliente
 
     // Flujos de escritura y lectura sobre el socket

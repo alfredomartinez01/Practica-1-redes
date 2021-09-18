@@ -1,3 +1,5 @@
+package Connections;
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +19,9 @@ public class Archivo {
         this.file = archivo;
     }
     
+    public Archivo(String nombre){
+        this.nombre = nombre;
+    }
     public Archivo(){
         
     }
