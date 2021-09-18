@@ -38,28 +38,7 @@ public class Cliente {
     
         255 -> Cerrar sesión
     
-     */
-    public static void main(String[] args) {
-
-       
-
-        
-
-        // Simulando la solicitud de archivos
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-        try {
-            String nombres[] = {"Archivo.java", "Cliente.java"};
-            recibirArchivo(nombres);
-            System.out.println("Solicitud de archivo correcto");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Hubo un error en la petición del archivo");
-        }       
-
-        // Simulando la finalización del sistema
-        cerrarConexion();
-    }
+    */
 
     // Conectamos al servidor
     public static void conectar() throws Exception {
@@ -146,7 +125,7 @@ public class Cliente {
             // Leemos metadatos del archivo
             String nombre = "ArchivoComprimido.zip";
             long tam = dis_socket.readLong();
-            File arch = new File(dir_relativa + "\\" + nombre);
+            File arch = new File(dir_absoluta + "\\" + nombre);
             System.out.println(arch.getAbsolutePath());
             // Creamos el flujo de salida al archivo
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(arch.getAbsolutePath()));
@@ -161,7 +140,7 @@ public class Cliente {
                 dos.flush();
                 escritos += recibidos;
             }
-            System.out.println("Archivo: " + dir_relativa + "\\" + nombre + " recibido correctamente.");
+            System.out.println("Archivo: " + dir_absoluta + "\\" + nombre + " recibido correctamente.");
             dos.close();
 
             // Descomprimimos el archivo en su carpeta         

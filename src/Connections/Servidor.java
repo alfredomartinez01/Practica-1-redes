@@ -134,11 +134,12 @@ public class Servidor {
             String ruta = dis_socket.readUTF(); // Leemos la ruta relativa que solicita el cliente
 
             // Ubicamos la carpeta
-            dir_relativa = dir_absoluta + "\\" + ruta + "\\";
+            dir_relativa = dir_absoluta + ruta + "\\";
             File carpeta = new File(dir_relativa);
-
+            System.out.println(carpeta.getAbsolutePath());
+            
             // Leemos la cantidad de archivos que tiene
-            int n_archs = carpeta.list().length;
+            int n_archs = carpeta.listFiles().length;
 
             // Enviamos la respuesta
             dos_socket.write(n_archs);

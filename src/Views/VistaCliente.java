@@ -351,7 +351,7 @@ public class VistaCliente extends javax.swing.JFrame {
         }
         
         // Asignamos la dirección donde se descargarán
-        dir_relativa = rutaLocal.getAbsolutePath();
+        dir_absoluta = rutaLocal.getAbsolutePath();
         
         /* Enviando la de archivos */
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
