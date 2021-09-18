@@ -43,12 +43,12 @@
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="100" max="-2" attributes="0"/>
-                      <Component id="txtRutaLocal" min="-2" pref="451" max="-2" attributes="0"/>
+                      <Component id="txtRutaLocal1" min="-2" pref="451" max="-2" attributes="0"/>
                       <EmptySpace pref="228" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Component id="txtRutaRemota" max="32767" attributes="0"/>
+                  <Component id="txtRutaLocal" max="32767" attributes="0"/>
                   <Component id="jScrollPane1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="130" max="-2" attributes="0"/>
@@ -72,8 +72,8 @@
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="txtRutaRemota" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtRutaLocal" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtRutaLocal1" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="36" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -236,15 +236,12 @@
         <Property name="text" type="java.lang.String" value="Local"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="txtRutaRemota">
+    <Component class="javax.swing.JLabel" name="txtRutaLocal">
       <Properties>
         <Property name="text" type="java.lang.String" value="Ruta remota"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
-      </AuxValues>
     </Component>
-    <Component class="javax.swing.JLabel" name="txtRutaLocal">
+    <Component class="javax.swing.JLabel" name="txtRutaLocal1">
       <Properties>
         <Property name="text" type="java.lang.String" value="Ruta local"/>
       </Properties>

@@ -79,14 +79,11 @@ public class VistaCliente extends javax.swing.JFrame {
 
         /* Cargamos los archivos en la tabla remota */
         cargarArchivos(archs_remotos, tbRemoto);
-        
-        /* Actualizamos la ruta */
-        txtRutaRemota.setText(dir_relativa);
     }
 
     public static void establecerRutaLocal(String ruta) {
         rutaLocal = new File(ruta);
-        txtRutaLocal.setText(rutaLocal.getAbsolutePath());
+        txtRutaLocal1.setText(rutaLocal.getAbsolutePath());
     }
 
     public static void leerArchivosLocales() {
@@ -152,10 +149,9 @@ public class VistaCliente extends javax.swing.JFrame {
 
     // Función que obtiene el directorio padre de una dirección relativa
     public static String obtenerPadre(String ruta) {
-        String[] parts = ruta.split("\\\\");
+        String[] parts = ruta.split("\\\\\\\\");
         ruta = "";
         for (int i = 0; i < parts.length - 1; i++) {
-            System.out.println(parts[i]);
             ruta += parts[i] + "\\";
         }
         return ruta;
@@ -173,8 +169,8 @@ public class VistaCliente extends javax.swing.JFrame {
         btnSubir = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        txtRutaRemota = new javax.swing.JLabel();
         txtRutaLocal = new javax.swing.JLabel();
+        txtRutaLocal1 = new javax.swing.JLabel();
         btnEliminar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -261,9 +257,9 @@ public class VistaCliente extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Dubai Light", 0, 18)); // NOI18N
         jLabel2.setText("Local");
 
-        txtRutaRemota.setText("Ruta remota");
+        txtRutaLocal.setText("Ruta remota");
 
-        txtRutaLocal.setText("Ruta local");
+        txtRutaLocal1.setText("Ruta local");
 
         btnEliminar.setBackground(new java.awt.Color(255, 51, 51));
         btnEliminar.setText("Eliminar");
@@ -294,10 +290,10 @@ public class VistaCliente extends javax.swing.JFrame {
                         .addGap(51, 51, 51))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(100, 100, 100)
-                        .addComponent(txtRutaLocal, javax.swing.GroupLayout.PREFERRED_SIZE, 451, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtRutaLocal1, javax.swing.GroupLayout.PREFERRED_SIZE, 451, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 228, Short.MAX_VALUE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtRutaRemota, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtRutaLocal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1))
                 .addGap(130, 130, 130))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -315,8 +311,8 @@ public class VistaCliente extends javax.swing.JFrame {
                     .addComponent(jLabel1))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtRutaRemota)
-                    .addComponent(txtRutaLocal))
+                    .addComponent(txtRutaLocal)
+                    .addComponent(txtRutaLocal1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -397,7 +393,6 @@ public class VistaCliente extends javax.swing.JFrame {
                     try {
                         // Obtenemos la dirección relativa del padre
                         dir_relativa = obtenerPadre(dir_relativa);
-                        
                         // Enviamos la solicitud
                         solicitarLista();
                         System.out.println("Solicitud de lista correcta");
@@ -406,6 +401,7 @@ public class VistaCliente extends javax.swing.JFrame {
                         
                         System.out.println(archs_relativos.size());
                         for (Archivo arch : archs_relativos) {
+                            System.out.println("|"+arch.getNombre());
                             archs_remotos.add(arch);
                         }
                     } catch (Exception e) {
@@ -415,9 +411,6 @@ public class VistaCliente extends javax.swing.JFrame {
 
                     /* Cargamos los archivos en la tabla remota */
                     cargarArchivos(archs_remotos, tbRemoto);
-                    
-                    /* Actualizamos la ruta */
-                    txtRutaRemota.setText(dir_relativa);
 
                 }
 
@@ -441,9 +434,6 @@ public class VistaCliente extends javax.swing.JFrame {
 
                 /* Cargamos los archivos en la tabla remota */
                 cargarArchivos(archs_remotos, tbRemoto);
-                
-                /* Actualizamos la ruta */
-                txtRutaRemota.setText(dir_relativa);
             }
         }
     }//GEN-LAST:event_tbRemotoMouseClicked
@@ -490,7 +480,7 @@ public class VistaCliente extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private static javax.swing.JTable tbLocal;
     private static javax.swing.JTable tbRemoto;
-    private static javax.swing.JLabel txtRutaLocal;
-    private static javax.swing.JLabel txtRutaRemota;
+    private javax.swing.JLabel txtRutaLocal;
+    private static javax.swing.JLabel txtRutaLocal1;
     // End of variables declaration//GEN-END:variables
 }
