@@ -1,6 +1,7 @@
 package Views;
 
 import Connections.Archivo;
+import static Connections.Cliente.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -9,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 public class VistaCliente extends javax.swing.JFrame {
@@ -16,25 +18,70 @@ public class VistaCliente extends javax.swing.JFrame {
     // Variables de ayuda para la posición de las ventanas
     private static final int ancho = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
     private static final int alto = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height;
+
     private static File rutaLocal;
+
     static ArrayList<Archivo> archs_locales; // Lista de archivos dentro de la dirección local
+    static ArrayList<Archivo> archs_remotos; // Lista de archivos dentro de la dirección local
 
     public VistaCliente() {
         initComponents();
         this.setExtendedState(MAXIMIZED_BOTH);
-        // Agregamos las opciones de las tablas
-        popupTablaLocal();
-
+        iniciarApp();        
+    }
+    
+    // Agregamos las rutas y cargamos archivos
+    public static void iniciarApp(){
+        /* Archivos locales */
         // Ponemos el directorio local por default
         establecerRutaLocal("/");
-
         // Leemos la lista de archivos locales
         leerArchivosLocales();
-
         // Mostramos la lista de archivos locales
-        cargarArchivosLocales();
+        cargarArchivos(archs_locales, tbLocal);
+        
+        /* Archivos remotos */
+        conectarApp();
+        
+        
     }
+    /* Conectamos la app al servidor y recibimos la lista de archivos de la carpeta principal*/
+    public static void conectarApp(){
+        establecerCarpeta();
+        /* Mandamos a conetar */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            conectar(); // Creamos la conexión al socket
+            System.out.println("Conexión establecida en: " + direccion + ":" + puerto);
 
+            flujoSalidaSkt(); // Creamos el flujo de escritura del socket
+            flujoEntradaSkt(); // Creamos el flujo de lectura del socket
+            System.out.println("Flujos sobre el socket creados correctamente.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al conectar al servidor y/o hacer los flujos");
+        }
+        
+        /* Solicitamos la lista de archivos para mostrarla */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            solicitarLista();
+            System.out.println("Solicitud de lista correcta");
+            archs_remotos = new ArrayList<Archivo>();
+            archs_remotos.add(new Archivo("../"));
+            
+            for(Archivo arch: archs_relativos){
+                archs_remotos.add(arch);
+            }            
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al solicitar los archivos del servidor");
+        }        
+        
+        /* Cargamos los archivos en la tabla remota */
+        cargarArchivos(archs_remotos, tbRemoto);
+    }
+    
     public static void establecerRutaLocal(String ruta) {
         rutaLocal = new File(ruta);
         txtRutaLocal1.setText(rutaLocal.getAbsolutePath());
@@ -43,7 +90,7 @@ public class VistaCliente extends javax.swing.JFrame {
     public static void leerArchivosLocales() {
         archs_locales = new ArrayList<Archivo>();
         archs_locales.add(new Archivo("../"));
-        
+
         for (File arch : rutaLocal.listFiles()) {
             Archivo archivo = new Archivo(arch);
 
@@ -60,16 +107,16 @@ public class VistaCliente extends javax.swing.JFrame {
     }
 
     // Función que inserta los archivos en la tabla de los archivos locales
-    public static void cargarArchivosLocales() {
-        DefaultTableModel model = (DefaultTableModel) tbLocal.getModel(); // Crea el modelo de la tabla a partir del actual
+    public static void cargarArchivos(ArrayList<Archivo> archivos, JTable tbl) {
+        DefaultTableModel model = (DefaultTableModel) tbl.getModel(); // Crea el modelo de la tabla a partir del actual
 
         // Limpiamos los registros anteriores de la tabla
-        int filas = tbLocal.getRowCount();
+        int filas = tbl.getRowCount();
         for (int i = 0; i < filas; i++) {
             model.removeRow(0);
         }
 
-        for (Archivo archivo : archs_locales) {
+        for (Archivo archivo : archivos) {
 
             Object[] fila = new Object[3];// Crea el objeto de celdas para agregar
             fila[0] = archivo.getNombre();
@@ -88,7 +135,7 @@ public class VistaCliente extends javax.swing.JFrame {
             fila[2] = archivo.getUltima_mod();
 
             model.addRow(fila); // Agrega la fila al modelo de la tabla
-            tbLocal.setModel(model); // Reasigna el modelo pero ahora con los nuevos datos
+            tbl.setModel(model); // Reasigna el modelo pero ahora con los nuevos datos
         }
     }
 
@@ -99,53 +146,6 @@ public class VistaCliente extends javax.swing.JFrame {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
         Date lastModifiedDate = new Date(lastModified);
         return simpleDateFormat.format(lastModifiedDate);
-    }
-
-    /*
-        Creamos los pop-up para la tabla de archivos locales
-     */
-    public void popupTablaLocal() {
-        JPopupMenu pM = new JPopupMenu(); //se crea el contenedor
-        JMenuItem jmi1 = new JMenuItem("Abrir"); //las opciones
-
-        jmi1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String nombreCarpeta = String.valueOf(tbLocal.getValueAt(tbLocal.getSelectedRow(), 0));
-                String ruta;
-                
-                if(nombreCarpeta.equals("../")){
-                    if(rutaLocal.getParentFile() != null){ // Comprobamos que haya directorio padre
-                        // Establecemos la ruta para la nueva carpeta
-                        establecerRutaLocal(rutaLocal.getParentFile().getAbsolutePath() + "//");
-                    
-                        // Leemos la lista de archivos locales                
-                        leerArchivosLocales();
-
-                        // Mostramos la lista de archivos locales
-                        cargarArchivosLocales();
-                    }
-                    
-                } else{
-                    if(new File(rutaLocal.getAbsolutePath() + "//" + nombreCarpeta + "//").isDirectory()){ // Comprobamos que sea directorio
-                        // Establecemos la ruta para la nueva carpeta
-                        establecerRutaLocal(rutaLocal.getAbsolutePath() + "//" + nombreCarpeta + "//");
-
-                        // Leemos la lista de archivos locales                
-                        leerArchivosLocales();
-
-                        // Mostramos la lista de archivos locales
-                        cargarArchivosLocales();
-                    }
-                }        
-                
-                
-            }
-        });
-
-        pM.add(jmi1);// se agregan las opciones al contenedor
-
-        tbLocal.setComponentPopupMenu(pM);//se agrega el menú a la tabla con su respectivo evento
     }
 
     @SuppressWarnings("unchecked")
@@ -212,6 +212,11 @@ public class VistaCliente extends javax.swing.JFrame {
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
+            }
+        });
+        tbLocal.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbLocalMouseClicked(evt);
             }
         });
         jScrollPane2.setViewportView(tbLocal);
@@ -327,6 +332,39 @@ public class VistaCliente extends javax.swing.JFrame {
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnEliminarActionPerformed
+
+    // Agregamos el eventlistener para manejar los directorios
+    private void tbLocalMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbLocalMouseClicked
+        if (evt.getClickCount() == 2) {
+            String nombreCarpeta = String.valueOf(tbLocal.getValueAt(tbLocal.getSelectedRow(), 0));
+            String ruta;
+
+            if (nombreCarpeta.equals("../")) {
+                if (rutaLocal.getParentFile() != null) { // Comprobamos que haya directorio padre
+                    // Establecemos la ruta para la nueva carpeta
+                    establecerRutaLocal(rutaLocal.getParentFile().getAbsolutePath() + "//");
+
+                    // Leemos la lista de archivos locales                
+                    leerArchivosLocales();
+
+                    // Mostramos la lista de archivos locales
+                    cargarArchivos(archs_locales, tbLocal);
+                }
+
+            } else {
+                if (new File(rutaLocal.getAbsolutePath() + "//" + nombreCarpeta + "//").isDirectory()) { // Comprobamos que sea directorio
+                    // Establecemos la ruta para la nueva carpeta
+                    establecerRutaLocal(rutaLocal.getAbsolutePath() + "//" + nombreCarpeta + "//");
+
+                    // Leemos la lista de archivos locales                
+                    leerArchivosLocales();
+
+                    // Mostramos la lista de archivos locales
+                    cargarArchivos(archs_locales, tbLocal);
+                }
+            }
+        }
+    }//GEN-LAST:event_tbLocalMouseClicked
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */

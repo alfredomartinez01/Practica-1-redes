@@ -15,8 +15,8 @@ import javax.swing.JFileChooser;
 
 public class Cliente {
 
-    static int puerto = 8000; // Puerto de conexión
-    static String direccion = "192.168.0.104"; // Dirección IP 
+    public static int puerto = 8000; // Puerto de conexión
+    public static String direccion = "192.168.0.104"; // Dirección IP 
     static Socket skt_cliente; // Socket del cliente
 
     // Flujos de escritura y lectura sobre el socket
@@ -25,7 +25,7 @@ public class Cliente {
 
     // Lista de archivos 
     static String dir_relativa = ""; // Ruta relativa sobre la carpeta de arhivos del servidor en el que se encuentra el cliente
-    static ArrayList<Archivo> archs_relativos = new ArrayList<Archivo>(); // Lista de archivos dentro de la dirección relativa 
+    public static ArrayList<Archivo> archs_relativos = new ArrayList<Archivo>(); // Lista de archivos dentro de la dirección relativa 
 
     // Dirección a la capeta de archivos
     static String dir_absoluta; // Apunta a la carpeta donde se encuentra el sistema de cliente
@@ -42,33 +42,8 @@ public class Cliente {
     
      */
     public static void main(String[] args) {
-        establecerCarpeta();
-        // Simulando la apertura de la aplicación
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-        try {
-            conectar(); // Creamos la conexión al socket
-            System.out.println("Conexión establecida en: " + direccion + ":" + puerto);
 
-            flujoSalidaSkt(); // Creamos el flujo de escritura del socket
-            flujoEntradaSkt(); // Creamos el flujo de lectura del socket
-            System.out.println("Flujos sobre el socket creados correctamente.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Hubo error al conectar al servidor y/o hacer los flujos");
-        }
-
-        // Simulando la solicitud de la lista de archivos
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-        try {
-            solicitarLista();
-            System.out.println("Solicitud de lista correcta");
-            for (Archivo arch : archs_relativos) {
-                System.out.println(arch.getNombre() + ", " + arch.getUltima_mod());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Hubo error al solicitar los archivos del servidor");
-        }
+        
 
         // Simulando el envío de archivos
         System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
