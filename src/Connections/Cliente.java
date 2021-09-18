@@ -9,8 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 public class Cliente {
@@ -28,7 +26,7 @@ public class Cliente {
     public static ArrayList<Archivo> archs_relativos = new ArrayList<Archivo>(); // Lista de archivos dentro de la dirección relativa 
 
     // Dirección a la capeta de archivos
-    static String dir_absoluta; // Apunta a la carpeta donde se encuentra el sistema de cliente
+    public static String dir_absoluta; // Apunta a la carpeta donde se encuentra el sistema de cliente
 
     /*
     DECRIPCIÓN DEL PROTOCOLO
@@ -43,24 +41,7 @@ public class Cliente {
      */
     public static void main(String[] args) {
 
-        
-
-        // Simulando el envío de archivos
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-        try {
-            File[] seleccion = getChoice();
-
-            // Compresión de archivos
-            File comprimido = Archivo.comprimir(seleccion);
-            enviarArchivo(comprimido); // Enviamos el archivo comprimido por el socket
-            comprimido.delete(); // Eliminamos el archivo comprimido
-
-            System.out.println(seleccion.length + " archivos/carpetas han sido enviados correctamente.");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Hubo error al enviar el archivo");
-        }
+       
 
         
 
@@ -74,18 +55,7 @@ public class Cliente {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Hubo un error en la petición del archivo");
-        }
-
-        // Simulando la solicitud de borrar archivos
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-        try {
-            String nombres[] = {"Archivo.java", "Cliente.java"};
-            eliminarArchivo(nombres);
-            System.out.println("Solicitud de eliminación de archivos correcto");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Hubo un error en la petición de eliminar el archivo.");
-        }
+        }       
 
         // Simulando la finalización del sistema
         cerrarConexion();
@@ -176,7 +146,7 @@ public class Cliente {
             // Leemos metadatos del archivo
             String nombre = "ArchivoComprimido.zip";
             long tam = dis_socket.readLong();
-            File arch = new File(dir_absoluta + "\\" + nombre);
+            File arch = new File(dir_relativa + "\\" + nombre);
             System.out.println(arch.getAbsolutePath());
             // Creamos el flujo de salida al archivo
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(arch.getAbsolutePath()));
@@ -191,7 +161,7 @@ public class Cliente {
                 dos.flush();
                 escritos += recibidos;
             }
-            System.out.println("Archivo: " + dir_absoluta + "\\" + nombre + " recibido correctamente.");
+            System.out.println("Archivo: " + dir_relativa + "\\" + nombre + " recibido correctamente.");
             dos.close();
 
             // Descomprimimos el archivo en su carpeta         
@@ -199,7 +169,7 @@ public class Cliente {
             arch.delete();
 
         } catch (Exception e) {
-            System.out.println("No se pudo recibir el archivo del cliente.");
+            System.out.println("No se pudo recibir el archivo del servidor.");
             e.printStackTrace();
         }
     }

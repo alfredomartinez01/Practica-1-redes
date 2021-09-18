@@ -1,21 +1,15 @@
 package Connections;
 
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class Servidor {
 
@@ -49,19 +43,19 @@ public class Servidor {
                     System.out.println("---------------------------------------------------------------------------------");
                     aceptarConexion();
                     System.out.println("Cliente conectado desde " + skt_cliente.getInetAddress() + ":" + skt_cliente.getPort());
-                    
+
                     flujoSalidaSkt(); // Creamos el flujo de escritura del socket
                     flujoEntradaSkt(); // Creamos el flujo de lectura del socket
                     System.out.println("Flujos sobre el socket creados correctamente.");
-                   
+
                     // Recibimos el comando del cliente
-                    try {                        
+                    try {
                         int comando = recibirComando(); // El primer comando siempre será de solicitud de lista
 
                         // Escuchamos comandos mientras el cliente no cierre conexión
-                        do{      
+                        do {
                             System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
-                            
+
                             switch (comando) {
                                 case 0: // En caso de que sea una solicitud de lista de archivos
                                     enviarListaArchs();
@@ -73,16 +67,16 @@ public class Servidor {
                                     enviarArchivos();
                                     break;
                                 case 3: // En caso de que el cliente elimine algún archivo
-                                    eliminarArchivo();
+                                    eliminar();
                                     break;
                                 default:
                                     break;
                             }
                             comando = recibirComando();
-                            
+
                         } while (comando != 255);
                         cerrarConexion();
-                        
+
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("Error al recibir el comando del cliente");
@@ -138,17 +132,17 @@ public class Servidor {
         try {
             // Recibimos el resto de la petición
             String ruta = dis_socket.readUTF(); // Leemos la ruta relativa que solicita el cliente
-            
+
             // Ubicamos la carpeta
-            dir_relativa  = dir_absoluta + "\\" + ruta + "\\"; 
+            dir_relativa = dir_absoluta + "\\" + ruta + "\\";
             File carpeta = new File(dir_relativa);
-            
+
             // Leemos la cantidad de archivos que tiene
             int n_archs = carpeta.list().length;
-            
+
             // Enviamos la respuesta
             dos_socket.write(n_archs);
-            for (File arch : carpeta.listFiles()) {                
+            for (File arch : carpeta.listFiles()) {
                 // Enviamos el nombre del archivo
                 dos_socket.writeUTF(arch.getName());
                 // Enviamos el tamaño del archivo
@@ -162,57 +156,55 @@ public class Servidor {
             System.out.println("Error al enviar lista de archivos");
         }
     }
-        
+
     // Recibimos cada archivo enviado por el cliente
-    public static void recibirArchivos(){
+    public static void recibirArchivos() {
         try {
             // Leemos metadatos del archivo
             String nombre = dis_socket.readUTF();
             long tam = dis_socket.readLong();
-            File arch = new File(dir_absoluta + "\\" + nombre);
-            
+            File arch = new File(dir_relativa + "\\" + nombre);
+
             // Creamos el flujo de salida al archivo
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(arch.getAbsolutePath()));
-            
+
             // Recibiendo archivo
             int recibidos;
-            for(long escritos = 0; escritos < tam; ){
+            for (long escritos = 0; escritos < tam;) {
                 byte[] b = new byte[1500]; // Recibimos un paquete de 1500 bytes
                 recibidos = dis_socket.read(b);
-                
+
                 dos.write(b, 0, recibidos); // Leemos desde el byte 0 hasta el número de leídos del socket
                 dos.flush();
                 escritos += recibidos;
-            }            
+            }
             System.out.println("Archivo: " + dir_absoluta + "\\" + nombre + " recibido correctamente.");
             dos.close();
-            
+
             // Descomprimimos el archivo en su carpeta         
             Archivo.descomprimir(arch);
             arch.delete();
 
-            
         } catch (Exception e) {
             System.out.println("No se pudo recibir el archivo del cliente.");
             e.printStackTrace();
         }
     }
-    
+
     // Enviamos un archivo comprimido con los archivos al servidor
     public static void enviarArchivos() throws Exception {
         // Recibimos el resto de la petición
         int n_archs = dis_socket.read(); // Leemos el número de archivos
         File files[] = new File[n_archs];
-                
-        for(int i = 0; i < n_archs; i++){
+
+        for (int i = 0; i < n_archs; i++) {
             String nombre = dis_socket.readUTF();
-            files[i] = new File(dir_relativa + "\\" + nombre); // Obtenemos el archivo con cada nombre recibido
-    
+            files[i] = new File(dir_relativa + "\\" + nombre + "\\"); // Obtenemos el archivo con cada nombre recibido
+            System.out.println(files[i].getAbsolutePath());
         }
-        
+
         // Comprimimos los archivos/carpetas en uno
         File arch = Archivo.comprimir(files);
-        
 
         // Obteniendo datos del archivo
         long tam = arch.length();
@@ -238,38 +230,51 @@ public class Servidor {
         dis.close();
         arch.delete();
     }
-    
-    // Eliminamos un archivo dependiendo de la petición
-    public static void eliminarArchivo() throws Exception {
+
+    // Eliminamos un archivo/directorio dependiendo de la petición
+    public static void eliminar() throws Exception {
         // Recibimos el resto de la petición
         int n_archs = dis_socket.read(); // Leemos el número de archivos
-        System.out.println(n_archs);
-        
+
         // Obteniendo y eliminando archivos
-        for(int i = 0; i < n_archs; i++){
+        for (int i = 0; i < n_archs; i++) {
             String nombre = dis_socket.readUTF();
-            System.out.println(nombre);
-            File arch = new File(dir_relativa + "\\" + nombre); // Obtenemos el archivo con cada nombre recibido
-            System.out.println(arch.getAbsolutePath());
-            arch.delete();
+            File arch = new File(dir_relativa + "\\" + nombre + "\\"); // Obtenemos el archivo con cada nombre recibido
+            
+            // Mandamos a eliminar el archivo o carpeta
+            eliminarArchivoCarpeta(arch);
         }
-        
+
     }
-    
+
+    // Elimina archivos o directorios del disto
+    private static void eliminarArchivoCarpeta(File archivo) {
+        if (!archivo.exists()){
+            return;
+        }
+
+        if (archivo.isDirectory()) {
+            for (File f : archivo.listFiles()) {
+                eliminarArchivoCarpeta(f);
+            }
+        }
+        archivo.delete();
+    }
+
     // Finalizamos la sesión con el cliente
-    public static void cerrarConexion(){
+    public static void cerrarConexion() {
         try {
             dos_socket.close();
             dis_socket.close();
-            
+
             skt_cliente.close();
             System.out.println("Sesión finalizada");
         } catch (Exception e) {
-            e.printStackTrace(); 
+            e.printStackTrace();
             System.out.println("No se pudo finalizar la sesión correctamente");
         }
-    }   
-    
+    }
+
     // Función que obtene la última modificación de un archivo
     public static String obtenerUltimaMod(File arch) {
         long lastModified = arch.lastModified();
@@ -278,6 +283,5 @@ public class Servidor {
         Date lastModifiedDate = new Date(lastModified);
         return simpleDateFormat.format(lastModifiedDate);
     }
-    
 
 }

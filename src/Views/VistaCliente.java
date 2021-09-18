@@ -2,14 +2,10 @@ package Views;
 
 import Connections.Archivo;
 import static Connections.Cliente.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
@@ -79,7 +75,7 @@ public class VistaCliente extends javax.swing.JFrame {
 
         /* Cargamos los archivos en la tabla remota */
         cargarArchivos(archs_remotos, tbRemoto);
-        
+
         /* Actualizamos la ruta */
         txtRutaRemota.setText(dir_relativa);
     }
@@ -155,7 +151,6 @@ public class VistaCliente extends javax.swing.JFrame {
         String[] parts = ruta.split("\\\\");
         ruta = "";
         for (int i = 0; i < parts.length - 1; i++) {
-            System.out.println(parts[i]);
             ruta += parts[i] + "\\";
         }
         return ruta;
@@ -177,7 +172,12 @@ public class VistaCliente extends javax.swing.JFrame {
         txtRutaLocal = new javax.swing.JLabel();
         btnEliminar = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         tbRemoto.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -340,15 +340,129 @@ public class VistaCliente extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBajarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBajarActionPerformed
-        // TODO add your handling code here:
+        // Obtenemos los archivos seleccionados en la tabla remota
+        int[] selectedRows = tbRemoto.getSelectedRows();
+        String nombres[] = new String[selectedRows.length];
+
+        // Obtenemos el nombre de cada archivo y el arreglo de archivos a enviar
+        for (int i = 0; i < selectedRows.length; i++) {
+            nombres[i] = String.valueOf(tbRemoto.getValueAt(selectedRows[i], 0));     
+            System.out.println(nombres[i]);
+        }
+        
+        // Asignamos la dirección donde se descargarán
+        dir_relativa = rutaLocal.getAbsolutePath();
+        
+        /* Enviando la de archivos */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            recibirArchivo(nombres);
+            System.out.println("Solicitud de archivo correcto");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo un error en la petición del archivo");
+        }
+        
+        // Leemos la lista de archivos locales
+        leerArchivosLocales();
+        // Mostramos la lista de archivos locales
+        cargarArchivos(archs_locales, tbLocal);
     }//GEN-LAST:event_btnBajarActionPerformed
 
     private void btnSubirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSubirActionPerformed
-        // TODO add your handling code here:
+        // Obtenemos los archivos seleccionados en la tabla local
+        int[] selectedRows = tbLocal.getSelectedRows();
+        String nombres[] = new String[selectedRows.length];
+
+        // Creamos el arreglo que guardará la selección de archivos
+        File seleccion[] = new File[selectedRows.length];
+
+        // Obtenemos el nombre de cada archivo y el arreglo de archivos a enviar
+        for (int i = 0; i < selectedRows.length; i++) {
+            nombres[i] = String.valueOf(tbLocal.getValueAt(selectedRows[i], 0));
+
+            for (Archivo archivo : archs_locales) {
+                if (archivo.getNombre().equals(nombres[i])) {
+                    seleccion[i] = archivo.getFile();
+                }
+            }
+        }
+
+        /* Envíamos los archivos al servidor */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            // Compresión de archivos
+            File comprimido = Archivo.comprimir(seleccion);
+            enviarArchivo(comprimido); // Enviamos el archivo comprimido por el socket
+            comprimido.delete(); // Eliminamos el archivo comprimido
+
+            System.out.println(seleccion.length + " archivos/carpetas han sido enviados correctamente.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al enviar el archivo");
+        }
+
+        /* Cargamos los archivos en la tabla remota */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            solicitarLista();
+            System.out.println("Solicitud de lista correcta");
+            archs_remotos = new ArrayList<Archivo>();
+            archs_remotos.add(new Archivo("../"));
+
+            for (Archivo arch : archs_relativos) {
+                archs_remotos.add(arch);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al solicitar los archivos del servidor");
+        }
+
+        /* Cargamos los archivos en la tabla remota */
+        cargarArchivos(archs_remotos, tbRemoto);
     }//GEN-LAST:event_btnSubirActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        // TODO add your handling code here:
+        // Obtenemos los archivos seleccionados en la tabla en remoto
+        int[] selectedRows = tbRemoto.getSelectedRows();
+        String nombres[] = new String[selectedRows.length];
+        
+        // Obtenemos el nombre de cada archivo
+        for (int i = 0; i < selectedRows.length; i++) {
+            nombres[i] = String.valueOf(tbRemoto.getValueAt(selectedRows[i], 0));
+            System.out.println(nombres[i]);
+        }
+        
+        /* Envíamos la solicitud de eliminar archivos al servidor */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            eliminarArchivo(nombres);
+            System.out.println("Solicitud de eliminación de archivos correcto");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo un error en la petición de eliminar el archivo.");
+        }
+        
+        /* Cargamos los archivos en la tabla remota */
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
+        try {
+            solicitarLista();
+            System.out.println("Solicitud de lista correcta");
+            archs_remotos = new ArrayList<Archivo>();
+            archs_remotos.add(new Archivo("../"));
+
+            for (Archivo arch : archs_relativos) {
+                archs_remotos.add(arch);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Hubo error al solicitar los archivos del servidor");
+        }
+
+        /* Cargamos los archivos en la tabla remota */
+        cargarArchivos(archs_remotos, tbRemoto);
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     // Agregamos el eventlistener para manejar los directorios locales
@@ -391,20 +505,19 @@ public class VistaCliente extends javax.swing.JFrame {
 
             if (nombreCarpeta.equals("../")) {
                 if (!dir_relativa.equals("")) { // Comprobamos que haya directorio padre
-                    
+
                     /* Solicitamos la lista de archivos */
                     System.out.println("++++++++++++++++++++++++++++++++++++++++++++++");
                     try {
                         // Obtenemos la dirección relativa del padre
                         dir_relativa = obtenerPadre(dir_relativa);
-                        
+
                         // Enviamos la solicitud
                         solicitarLista();
                         System.out.println("Solicitud de lista correcta");
                         archs_remotos = new ArrayList<Archivo>();
                         archs_remotos.add(new Archivo("../"));
-                        
-                        System.out.println(archs_relativos.size());
+
                         for (Archivo arch : archs_relativos) {
                             archs_remotos.add(arch);
                         }
@@ -415,7 +528,7 @@ public class VistaCliente extends javax.swing.JFrame {
 
                     /* Cargamos los archivos en la tabla remota */
                     cargarArchivos(archs_remotos, tbRemoto);
-                    
+
                     /* Actualizamos la ruta */
                     txtRutaRemota.setText(dir_relativa);
 
@@ -441,12 +554,17 @@ public class VistaCliente extends javax.swing.JFrame {
 
                 /* Cargamos los archivos en la tabla remota */
                 cargarArchivos(archs_remotos, tbRemoto);
-                
+
                 /* Actualizamos la ruta */
                 txtRutaRemota.setText(dir_relativa);
             }
         }
     }//GEN-LAST:event_tbRemotoMouseClicked
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        cerrarConexion();
+        this.dispose();
+    }//GEN-LAST:event_formWindowClosing
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
